@@ -22,6 +22,7 @@ app.use(
 
 app.use(express.json());
 
+
 mongoose
   .connect(process.env.MONGODB_URI, { dbName: process.env.DB_NAME })
   .then(() => console.log("MongoDB connected"))
@@ -40,15 +41,15 @@ app.get("/", (_, res) => {
 
 app.use("/", userRouters);
 
-
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 
 
 const transporter = nodemailer.createTransport({
-  service: "gmail", 
+  service: "gmail",
   auth: {
-    user: "sridharan.r@mitrahsoft.com", 
-    pass: "Sabeswaran1999r@", 
+    user: "sridharan.r@mitrahsoft.com",
+    pass: "Sabeswaran1999r@",
   },
 });
 
@@ -56,26 +57,26 @@ app.post("/sendEmail", (req, res) => {
   const { fileName } = req.body;
   const filePath = path.join(__dirname, "uploads", fileName);
 
-  
+
   if (!fs.existsSync(filePath)) {
     return res.status(404).send("File not found");
   }
 
-  
+
   const mailOptions = {
-    from: "sridharan.r@mitrahsoft.com", 
-    to: "sridharan2001r@mitrahsoft.com", 
-    subject: "Just Checking", 
-    text: "Attaching the file", 
+    from: "sridharan.r@mitrahsoft.com",
+    to: "sridharan2001r@mitrahsoft.com",
+    subject: "Just Checking",
+    text: "Attaching the file",
     attachments: [
       {
         filename: fileName,
-        path: filePath, 
+        path: filePath,
       },
     ],
   };
 
-  
+
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.error("Error sending email:", error);
