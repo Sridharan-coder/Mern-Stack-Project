@@ -23,6 +23,7 @@ import {
 } from "@syncfusion/ej2-react-schedule"
 import CalendarView from "../CalendarView/CalendarView";
 import MapView from "../MapView/MapView";
+import MapPointer from "../MapPointer/MapPointer";
 
 
 
@@ -35,7 +36,8 @@ const EventVisualize = () => {
                 <Col xs={1}></Col>
                 <Col xs={5} className="visualSpread">
 
-                    <MapView />
+                    {/* <MapView /> */}
+                    <MapPointer />
                 </Col>
                 {/* <Col xs={6}>
                     <Calendar minDate={new Date()} />
