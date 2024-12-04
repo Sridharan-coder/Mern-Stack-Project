@@ -52,7 +52,11 @@ const generatedUserData = async (hostPath, originalname) => {
   return await newUser.save();
 }
 
-
+const getGeneratedEventData=() => {
+  return Users.find({
+    way: "generated",
+  });
+};
 
 module.exports = {
   getAllUsersData,
@@ -61,5 +65,6 @@ module.exports = {
   createUserData,
   updateUserData,
   deleteUserData,
-  generatedUserData
+  generatedUserData,
+  getGeneratedEventData
 };

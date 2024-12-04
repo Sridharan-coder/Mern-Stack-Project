@@ -6,10 +6,15 @@ const {
   deleteUserData,
   getAllImageData,
   generatedUserData,
+  getGeneratedEventData,
 } = require("../Service/userService");
 
 const path = require("path");
 const fs = require("fs");
+const PDFParser = require('pdf2json');
+const PdfReader = require('pdfreader').PdfReader;
+const readXlsxFile = require('read-excel-file/node')
+
 
 const uploadDir = path.join(__dirname, "..", "uploads");
 
@@ -25,7 +30,7 @@ const getAllUser = async (req, res, next) => {
   try {
     const count = Number(req.params["count"]);
     const users = await getAllUsersData(count * 10);
-    res.header("Access-Control-Allow-Origin: *"); 
+    res.header("Access-Control-Allow-Origin: *");
     res.status(200).json({
       success: true,
       msg: "Users fetched successfully",
@@ -54,7 +59,7 @@ const getAllImage = async (req, res, next) => {
           .json({ success: false, message: "Error reading files" });
       }
 
-      
+
       const fileURLs = files.map((file) => ({
         filesPath: `${req.protocol}://${req.get("host")}/uploads/${file}`,
       }));
@@ -174,7 +179,7 @@ const deleteUser = async (req, res, next) => {
 };
 
 const generateEvent = async (req, res, next) => {
- 
+
   try {
     const hostPath = path.join(
       "http://localhost:3320/backend_work",
@@ -194,6 +199,102 @@ const generateEvent = async (req, res, next) => {
   }
 };
 
+const getAllGenerated = async (req, res, next) => {
+
+  const directoryPath = path.join(__dirname, "..", "uploads");
+
+  try {
+    const users = await getGeneratedEventData();
+
+    const pdfs = users.filter(item => item.fileName.endsWith(".pdf"))
+    const xlsxs = users.filter(item => item.fileName.endsWith(".xlsx"))
+
+    const processPdf = (pdf) => {
+      return new Promise((resolve, reject) => {
+        const fileArray = pdf.filesPath.split("\\")
+        const fileName = fileArray[fileArray.length - 1]
+        const filePathTemp = path.join(directoryPath, fileName);
+        const pdfReaders = new PdfReader()
+        const innerArray = []
+        fs.readFile(filePathTemp, (err, pdfBuffer) => {
+
+          if (err) {
+            return reject(`file Reading error  ${fileName} - ${err}`);
+          }
+
+          pdfReaders.parseBuffer(pdfBuffer, (err, item) => {
+            if (err) reject(`file Reading error  ${fileName} - ${err}`);
+
+            if (!item) {
+              return resolve({ fileName, content: innerArray.join("==") })
+            }
+
+            if (item.text) {
+              innerArray.push(item.text);
+            }
+          });
+        })
+
+      });
+    }
+
+    const tempVar = pdfs.map((item) => processPdf(item))
+    const secondaryTemp = await Promise.all(tempVar)
+
+
+    const processXlsx = (xls) => {
+      return new Promise((resolve, reject) => {
+        const fileArray = xls.filesPath.split("\\")
+        const fileName = fileArray[fileArray.length - 1]
+        const filePathTemp = path.join(directoryPath, fileName);
+        const xlsxFiles = {}
+
+        readXlsxFile(fs.createReadStream(filePathTemp)).then((rows) => {
+          rows[0].forEach((fileArrange, index) => {
+            xlsxFiles[fileArrange] = rows[1][index];
+          })
+          return resolve({ fileName, content: xlsxFiles })
+        })
+          .catch((error) => reject(`file Reading error  ${fileName} - ${error}`))
+      })
+    }
+
+
+    const tempVarXlsx = xlsxs.map((item) => processXlsx(item))
+    const secondaryTempXlsx = await Promise.all(tempVarXlsx)
+
+    const secondaryTempPdf = secondaryTemp.map(item => {
+      const tempObject = {}
+      item.content.split("==").forEach(data => {
+        const tempArr = data.split(":")
+        tempObject[tempArr[0].trim()] = tempArr[1].trim();
+      })
+      item.content = tempObject;
+      return item;
+    })
+
+    console.log("all Data ======>", [...secondaryTempPdf, ...secondaryTempXlsx])
+
+
+    res.header("Access-Control-Allow-Origin: *");
+    res.status(200).json({
+      success: true,
+      msg: "genrated Event fetch successfully",
+      files: [...secondaryTempPdf, ...secondaryTempXlsx],
+    });
+
+
+
+  } catch (error) {
+    next(error);
+  }
+
+
+
+
+};
+
+
 module.exports = {
   getAllUser,
   getAllImage,
@@ -203,5 +304,6 @@ module.exports = {
   updateUser,
   deleteUser,
   generateEvent,
+  getAllGenerated,
   errorHandler,
 };

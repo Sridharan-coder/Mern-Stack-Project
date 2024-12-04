@@ -7,7 +7,8 @@ const {
   deleteUser,
   getAllImage,
   downloadFile,
-  generateEvent
+  generateEvent,
+  getAllGenerated
 } = require("../Controllers/userController");
 const upload = require("../utils/upload");
 const router = express.Router();
@@ -25,6 +26,7 @@ router.get("/download/:id", downloadFile);
 
 
 router.post("/generate",upload, generateEvent)
+router.get("/generated/file",getAllGenerated)
 
 // router.get('/backend_work/uploads/:fileName', (req, res) => {
 

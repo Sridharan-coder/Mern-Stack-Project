@@ -4,6 +4,8 @@ import {
   Badge,
   Button,
   Col,
+  Form,
+  Modal,
   Pagination,
   Row,
   Stack,
@@ -13,6 +15,7 @@ import {
 const FileList = ({ file }) => {
   const [files, setFiles] = useState([]);
   const [valueCount, setValueCount] = useState(0);
+  const [isModalOpen,setIsModalOpen]= useState(false)
 
   //   const handleDownload = (file) => {
   //     const path = file.filesPath.split("\\");
@@ -66,7 +69,7 @@ const FileList = ({ file }) => {
           const url = window.URL.createObjectURL(new Blob([response.data]));
           const link = document.createElement("a");
           link.href = url;
-          link.setAttribute("download", fileName); 
+          link.setAttribute("download", fileName);
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -80,16 +83,17 @@ const FileList = ({ file }) => {
   };
 
   const handleSendEmail = (file) => {
+    console.log("---->", file);
     const path = file.filesPath.split("\\");
     const fileName = path[path.length - 1];
 
     axios
       .post("http://localhost:3320/sendEmail", { fileName })
       .then((response) => {
-        console.log("Email sent successfully:", response);
+        console.log("---> Email sent successfully:", response);
       })
       .catch((error) => {
-        console.error("Error sending email:", error);
+        console.error(" ---> Error sending email:", error);
       });
   };
 
@@ -105,70 +109,109 @@ const FileList = ({ file }) => {
 
   console.log(files.length < 10);
   return (
-    <Row style={{ marginTop: 40 }}>
-      <Col xs={1}> </Col>
-      <Col xs={10}>
-        {files.length ? (
-          <>
-            <Table hover bordered>
-              <thead>
-                <tr>
-                  <th>Id</th>
-                  <th>File Name</th>
-                  <th colSpan={2}>Actions</th>
-                  
-                </tr>
-              </thead>
-              <tbody>
-                {files.map((file, index) => (
-                  <tr key={index}>
-                    <td>{file._id}</td>
-                    <td>{file.fileName}</td>
-                    <td>
-                      <Button
-                        onClick={() => handleDownload(file)}
-                        variant="primary"
-                      >
-                        Download
-                      </Button>
-                    </td>
-                    <td>
-                      <Button
-                        onClick={() => handleSendEmail(file)}
-                        variant="primary"
-                      >
-                        Share
-                      </Button>
-                    </td>
+    <>
+      <Row style={{ marginTop: 40 }}>
+        <Col xs={1}> </Col>
+        <Col xs={10}>
+          {files.length ? (
+            <>
+              <Table hover bordered>
+                <thead>
+                  <tr>
+                    <th>Id</th>
+                    <th>File Name</th>
+                    <th colSpan={2}>Actions</th>
+
                   </tr>
-                ))}
-              </tbody>
-            </Table>
-            <Stack direction="horizontal" gap={3}>
-              <Button
-                onClick={() => setValueCount(valueCount - 1)}
-                disabled={valueCount <= 0}
-              >
-                Previous
-              </Button>
-              <Pagination className="ms-auto paginationCount primary">
-                {valueCount + 1}
-              </Pagination>
-              <Button
-                onClick={() => setValueCount(valueCount + 1)}
-                disabled={files.length < 11}
-                className="ms-auto"
-              >
-                Next
-              </Button>
-            </Stack>
-          </>
-        ) : (
-          ""
-        )}
-      </Col>
-      <Col xs={1}> </Col>
-    </Row>
+                </thead>
+                <tbody>
+                  {files.map((file, index) => (
+                    <tr key={index}>
+                      <td>{index+1}</td>
+                      <td>{file.fileName}</td>
+                      <td>
+                        <Button
+                          onClick={() => handleDownload(file)}
+                          variant="primary"
+                        >
+                          Download
+                        </Button>
+                      </td>
+                      <td>
+                        <Button
+                          onClick={() => handleSendEmail(file)}
+                          variant="primary"
+                        >
+                          Share
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <Stack direction="horizontal" gap={3}>
+                <Button
+                  onClick={() => setValueCount(valueCount - 1)}
+                  disabled={valueCount <= 0}
+                >
+                  Previous
+                </Button>
+                <Pagination className="ms-auto paginationCount primary">
+                  {valueCount + 1}
+                </Pagination>
+                <Button
+                  onClick={() => setValueCount(valueCount + 1)}
+                  disabled={files.length < 11}
+                  className="ms-auto"
+                >
+                  Next
+                </Button>
+              </Stack>
+            </>
+          ) : (
+            ""
+          )}
+        </Col>
+        <Col xs={1}> </Col>
+      </Row>
+
+
+
+      <Modal show={isModalOpen} onHide={()=> setIsModalOpen(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Modal heading</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
+              <Form.Label>Email address</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="name@example.com"
+                autoFocus
+              />
+            </Form.Group>
+            <Form.Group
+              className="mb-3"
+              controlId="exampleForm.ControlTextarea1"
+            >
+              <Form.Label>Example textarea</Form.Label>
+              <Form.Control as="textarea" rows={3} />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={()=>setIsModalOpen(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={()=>setIsModalOpen(false)}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
+    </>
   );
 };
 

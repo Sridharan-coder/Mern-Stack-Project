@@ -54,7 +54,7 @@ const CorasalImage = () => {
             <img
               src={image}
               alt={`Slide ${index + 1}`}
-              style={{ width: "100%", height: "auto", borderRadius: "10px" }}
+              style={{ width: "100%", height: "86vh", borderRadius: "10px" }}
             />
           </div>
         ))}
